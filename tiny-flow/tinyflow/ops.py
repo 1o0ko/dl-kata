@@ -4,7 +4,8 @@ Brain-dead simple version of tensorflow-like DL framework based on graphs
 import numpy as np
 
 
-class BaseNode(object):
+class Node(object):
+    ''' Specifies the API contract '''
     def __init__(self, inbound_nodes):
         self.inbound_nodes = inbound_nodes
         self.outbound_nodes = []
@@ -24,14 +25,8 @@ class BaseNode(object):
         for node in self.inbound_nodes:
             node.outbound_nodes.append(self)
 
-
-class Node(BaseNode):
-    ''' Specifies the API contract '''
-    def __init__(self, inbound_nodes):
-        BaseNode.__init__(self, inbound_nodes)
-
     # These will be implemented in a subclass.
-    def forward(self):
+    def forward(self, kvargs):
         """
         Forward propagation.
 
@@ -40,7 +35,7 @@ class Node(BaseNode):
         """
         raise NotImplementedError
 
-    def backward(self):
+    def backward(self, kvargs):
         """
         Backward propagation.
 
@@ -52,53 +47,33 @@ class Node(BaseNode):
         raise NotImplementedError
 
 
-class BackwardNode(BaseNode):
-    def __init__(self, inbound_nodes):
-        BaseNode.__init__(self, inbound_nodes)
-
-    def forward(self):
-        raise NotImplementedError
-
-    def backward(self, value):
-        raise NotImplementedError
-
-class ForwardNode(BaseNode):
-    def __init__(self, inbound_nodes):
-        BaseNode.__init__(self, inbound_nodes)
-
-    def forward(self, value):
-        raise NotImplementedError
-
-    def backward(self):
-        raise NotImplementedError
-
-
-class MockGrad(BackwardNode):
+class MockGrad(Node):
     ''' Used in tests '''
     def __init__(self, x):
-        BackwardNode.__init__(self, [x])
+        Node.__init__(self, [x])
 
-    def forward(self):
+    def forward(self, kvargs):
         self.value = self.inbound_nodes[0].value
 
-    def backward(self, value):
-        self.gradients = {n: value for n in self.inbound_nodes}
+    def backward(self, kvargs):
+        grad = kvargs[self]
+        self.gradients = {n: grad for n in self.inbound_nodes}
 
 
-class Input(ForwardNode):
+class Input(Node):
     ''' Implements inputing values to the graph `'''
     def __init__(self):
-        ForwardNode.__init__(self, [])
+        Node.__init__(self, [])
 
     # NOTE: Input node is the only node where the value is
     # passed as an argument to forward()
     #
     # All other node implementations should get the value
     # of the previous nodes from self.inbound_nodes
-    def forward(self, value):
-        self.value = value
+    def forward(self, kvargs):
+        self.value = kvargs[self]
 
-    def backward(self):
+    def backward(self, kvargs):
         self.gradients = {self: 0}
         for node in self.outbound_nodes:
             self.gradients[self] += node.gradients[self]
@@ -109,11 +84,11 @@ class Add(Node):
     def __init__(self, x, y):
         Node.__init__(self, [x, y])
 
-    def forward(self):
+    def forward(self, kvargs):
         x, y = [node.value for node in self.inbound_nodes]
         self.value = x + y
 
-    def backward(self):
+    def backward(self, kvargs):
         self.gradients = {n: 0 for n in self.inbound_nodes}
         for n in self.outbound_nodes:
             grad = n.gradients[self]
@@ -129,11 +104,11 @@ class Mul(Node):
     def __init__(self, x, y):
         Node.__init__(self, [x, y])
 
-    def forward(self):
+    def forward(self, kvargs):
         x, y = [node.value for node in self.inbound_nodes]
         self.value = x * y
 
-    def backward(self):
+    def backward(self, kvargs):
         self.gradients = {n: 0 for n in self.inbound_nodes}
         for n in self.outbound_nodes:
             grad = n.gradients[self]
@@ -141,7 +116,3 @@ class Mul(Node):
             x, y = self.inbound_nodes
             self.gradients[x] += y.value * grad
             self.gradients[y] += x.value * grad
-
-
-if __name__ == '__main__':
-    print('yo!')

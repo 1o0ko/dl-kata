@@ -1,10 +1,7 @@
 '''
 Core functions of tinyflow
 '''
-from ops import (
-    ForwardNode,
-    BackwardNode
-)
+
 
 def topological_sort(input_nodes):
     """
@@ -61,18 +58,10 @@ def value_and_grad(node, feed_dict, wrt=None):
 
     # forward pass
     for n in nodes:
-        if isinstance(n, ForwardNode):
-            v = feed_dict[n]
-            n.forward(v)
-        else:
-            n.forward()
+        n.forward(feed_dict)
 
     # backward pass
     for n in nodes[::-1]:
-        if isinstance(n, BackwardNode):
-            g = feed_dict[n]
-            n.backward(g)
-        else:
-            n.backward()
+        n.backward(feed_dict)
 
     return node.value, [n.gradients[n] for n in wrt]
