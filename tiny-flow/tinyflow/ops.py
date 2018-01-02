@@ -4,8 +4,7 @@ Brain-dead simple version of tensorflow-like DL framework based on graphs
 import numpy as np
 
 
-class Node(object):
-    ''' Specifies the API contract '''
+class BaseNode(object):
     def __init__(self, inbound_nodes):
         self.inbound_nodes = inbound_nodes
         self.outbound_nodes = []
@@ -24,6 +23,12 @@ class Node(object):
 
         for node in self.inbound_nodes:
             node.outbound_nodes.append(self)
+
+
+class Node(BaseNode):
+    ''' Specifies the API contract '''
+    def __init__(self, inbound_nodes):
+        BaseNode.__init__(self, inbound_nodes)
 
     # These will be implemented in a subclass.
     def forward(self):
@@ -47,22 +52,43 @@ class Node(object):
         raise NotImplementedError
 
 
-class MockGrad(Node):
+class BackwardNode(BaseNode):
+    def __init__(self, inbound_nodes):
+        BaseNode.__init__(self, inbound_nodes)
+
+    def forward(self):
+        raise NotImplementedError
+
+    def backward(self, value):
+        raise NotImplementedError
+
+class ForwardNode(BaseNode):
+    def __init__(self, inbound_nodes):
+        BaseNode.__init__(self, inbound_nodes)
+
+    def forward(self, value):
+        raise NotImplementedError
+
+    def backward(self):
+        raise NotImplementedError
+
+
+class MockGrad(BackwardNode):
     ''' Used in tests '''
     def __init__(self, x):
-        Node.__init__(self, [x])
+        BackwardNode.__init__(self, [x])
 
     def forward(self):
         self.value = self.inbound_nodes[0].value
 
-    def backward(self, grad):
-        self.gradients = {n: grad for n in self.inbound_nodes}
+    def backward(self, value):
+        self.gradients = {n: value for n in self.inbound_nodes}
 
 
-class Input(Node):
+class Input(ForwardNode):
     ''' Implements inputing values to the graph `'''
     def __init__(self):
-        Node.__init__(self, [])
+        ForwardNode.__init__(self, [])
 
     # NOTE: Input node is the only node where the value is
     # passed as an argument to forward()
