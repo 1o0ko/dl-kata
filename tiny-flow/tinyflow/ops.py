@@ -116,3 +116,30 @@ class Mul(Node):
             x, y = self.inbound_nodes
             self.gradients[x] += y.value * grad
             self.gradients[y] += x.value * grad
+
+
+class Linear(Node):
+    ''' Implements Linear layer: X*W + b '''
+    def __init__(self, x_in, w_in, b_in):
+        Node.__init__(self, [x_in, w_in, b_in])
+
+    def forward(self, kvargs):
+        X, W, b = [node.value for node in self.inbound_nodes]
+        self.value = np.dot(X, W) + b
+
+    def backward(self, kvargs):
+        '''
+        For gradient calculations check:
+            http://web.stanford.edu/class/cs224n/lecture_notes/cs224n-2017-gradient-notes.pdf
+        '''
+        self.gradients = {
+            n: np.zeros_like(n.value) for n in self.inbound_nodes
+        }
+
+        for n in self.outbound_nodes:
+            grad = n.gradients[self]
+
+            X, W, b = self.inbound_nodes
+            self.gradients[X] += np.dot(grad, W.value.T)
+            self.gradients[W] += np.dot(X.value.T, grad)
+            self.gradients[b] += np.sum(grad, axis=0, keepdims=False)

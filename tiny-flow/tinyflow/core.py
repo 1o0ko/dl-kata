@@ -10,6 +10,9 @@ def build_graph(feed_dict):
 
     Args:
         in_nodes - dictionary with input nodes
+
+    Returns:
+        graph - sortable graph representation
     '''
     graph = defaultdict(lambda: {'in': set(), 'out': set()})
     nodes = [node for node in feed_dict]

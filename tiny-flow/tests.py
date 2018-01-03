@@ -1,6 +1,7 @@
 '''
 Tests the node implementations
 '''
+import numpy as np
 import unittest
 
 from tinyflow.core import value_and_grad
@@ -8,6 +9,7 @@ from tinyflow.ops import (
     Input,
     Add,
     Mul,
+    Linear,
     MockGrad
 )
 
@@ -36,6 +38,25 @@ class OpsTest(unittest.TestCase):
         self.assertEqual(loss, -3)
         self.assertEqual(grads, [-0.5, 1.5, 1.5])
 
+    def test_linear(self):
+        ''' Tests Linear operation '''
+        x_in, w_in, b_in = Input(), Input(), Input()
+        f = Linear(x_in, w_in, b_in)
+        mock = MockGrad(f)
+
+        x = np.array([[-1., -2.], [-1, -2]])
+        w = np.array([[2., -3], [2., -3]])
+        b = np.array([-3., -5])
+        mock_value = np.array([[1., 2.], [3, 4]])
+
+        feed_dict = {x_in: x, w_in: w, b_in: b, mock: mock_value}
+        loss, grads = value_and_grad(mock, feed_dict, (x_in, w_in, b_in))
+
+        # print(loss, grads)
+        self.assertTrue(np.allclose(loss, np.array([[-9., 4.], [-9., 4.]])))
+        self.assertTrue(np.allclose(grads[0], np.array([[-4.,  -4.], [-6.,  -6.]])))
+        self.assertTrue(np.allclose(grads[1], np.array([[-4.,  -6.], [-8., -12.]])))
+        self.assertTrue(np.allclose(grads[2], np.array([[4., 6.]])))
 
 if __name__ == '__main__':
     unittest.main()
