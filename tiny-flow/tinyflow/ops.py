@@ -143,3 +143,46 @@ class Linear(Node):
             self.gradients[X] += np.dot(grad, W.value.T)
             self.gradients[W] += np.dot(X.value.T, grad)
             self.gradients[b] += np.sum(grad, axis=0, keepdims=False)
+
+
+class Sigmoid(Node):
+    '''
+    Implements sigmoid activation function
+    '''
+    def __init__(self, x):
+        Node.__init__(self, [x])
+
+    def forward(self, kvargs):
+        x = self.inbound_nodes[0].value
+        self.value = 1./(1.+np.exp(-x))
+
+    def backward(self, kvargs):
+        self.gradients = {
+            n: np.zeros_like(n.value) for n in self.inbound_nodes
+        }
+        for n in self.outbound_nodes:
+            grad_cost = n.gradients[self]
+            x = self.inbound_nodes[0]
+            self.gradients[x] += grad_cost*self.value*(1-self.value)
+
+
+class Relu(Node):
+    '''
+    Implements ReLu activation function
+    '''
+    def __init__(self, x):
+        Node.__init__(self, [x])
+
+    def forward(self, kvargs):
+        x = self.inbound_nodes[0].value
+        mask = x > 0
+        self.value = x * mask
+
+    def backward(self, kvargs):
+        self.gradients = {
+            n: np.zeros_like(n.value) for n in self.inbound_nodes
+        }
+        for n in self.outbound_nodes:
+            grad_cost = n.gradients[self]
+            x = self.inbound_nodes[0]
+            self.gradients[x] += grad_cost * (self.value > 0)

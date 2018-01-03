@@ -10,6 +10,7 @@ from tinyflow.ops import (
     Add,
     Mul,
     Linear,
+    Sigmoid,
     MockGrad
 )
 
@@ -54,9 +55,30 @@ class OpsTest(unittest.TestCase):
 
         # print(loss, grads)
         self.assertTrue(np.allclose(loss, np.array([[-9., 4.], [-9., 4.]])))
-        self.assertTrue(np.allclose(grads[0], np.array([[-4.,  -4.], [-6.,  -6.]])))
-        self.assertTrue(np.allclose(grads[1], np.array([[-4.,  -6.], [-8., -12.]])))
-        self.assertTrue(np.allclose(grads[2], np.array([[4., 6.]])))
+        self.assertTrue(np.allclose(
+            grads[0], np.array([[-4.,  -4.], [-6.,  -6.]])))
+        self.assertTrue(np.allclose(
+            grads[1], np.array([[-4.,  -6.], [-8., -12.]])))
+        self.assertTrue(np.allclose(
+            grads[2], np.array([[4., 6.]])))
+
+    def test_sigmoid(self):
+        x_in = Input()
+
+        f = Sigmoid(x_in)
+        mock = MockGrad(f)
+
+        x = np.array([-10., 0, 10])
+
+        feed_dict = {x_in: x, mock: 0.5}
+        loss, grads = value_and_grad(mock, feed_dict, [x_in])
+
+        # print(loss, grads)
+        self.assertTrue(np.allclose(
+            loss, np.array([0., 0.5, 1.]), atol=1.e-4))
+
+        self.assertTrue(np.allclose(
+            grads, np.array([0., 0.125, 0.]), atol=1.e-4))
 
 if __name__ == '__main__':
     unittest.main()
