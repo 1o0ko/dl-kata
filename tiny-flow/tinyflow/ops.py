@@ -125,7 +125,7 @@ class Linear(Node):
 
     def forward(self, kvargs):
         X, W, b = [node.value for node in self.inbound_nodes]
-        self.value = np.dot(X, W) + b
+        self.value = X @ W + b
 
     def backward(self, kvargs):
         '''
@@ -140,8 +140,8 @@ class Linear(Node):
             grad = n.gradients[self]
 
             X, W, b = self.inbound_nodes
-            self.gradients[X] += np.dot(grad, W.value.T)
-            self.gradients[W] += np.dot(X.value.T, grad)
+            self.gradients[X] += grad @ W.value.T
+            self.gradients[W] += X.value.T @ grad
             self.gradients[b] += np.sum(grad, axis=0, keepdims=False)
 
 
