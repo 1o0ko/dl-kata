@@ -1,38 +1,45 @@
 '''
 Core functions of tinyflow
 '''
+from collections import defaultdict
 
 
-def topological_sort(input_nodes):
+def build_graph(feed_dict):
+    '''
+    Builds graph from list on input nodes
+
+    Args:
+        in_nodes - dictionary with input nodes
+    '''
+    graph = defaultdict(lambda: {'in': set(), 'out': set()})
+    nodes = [node for node in feed_dict]
+    while nodes:
+        node = nodes.pop(0)
+        for out_node in node.outbound_nodes:
+            graph[node]['out'].add(out_node)
+            graph[out_node]['in'].add(node)
+            nodes.append(out_node)
+
+    return graph
+
+
+def topological_sort(graph):
     """
     Sort the nodes in topological order.
-    All nodes should be reachable through the `input_nodes`.
     Returns a list of sorted nodes.
     """
-    G = {}
-    nodes = [n for n in input_nodes]
-    while len(nodes) > 0:
-        n = nodes.pop(0)
-        if n not in G:
-            G[n] = {'in': set(), 'out': set()}
-        for m in n.outbound_nodes:
-            if m not in G:
-                G[m] = {'in': set(), 'out': set()}
-            G[n]['out'].add(m)
-            G[m]['in'].add(n)
-            nodes.append(m)
-
+    # NOTE: Input nodes have empty 'in' key
     L = []
-    S = set(input_nodes)
-    while len(S) > 0:
-        n = S.pop()
+    S = [node for node in graph if not graph[node]['in']]
+    while S:
+        n = S.pop(0)
         L.append(n)
         for m in n.outbound_nodes:
-            G[n]['out'].remove(m)
-            G[m]['in'].remove(n)
+            graph[n]['out'].remove(m)
+            graph[m]['in'].remove(n)
             # if no other incoming edges add to S
-            if len(G[m]['in']) == 0:
-                S.add(m)
+            if not graph[m]['in']:
+                S.append(m)
     return L
 
 
@@ -53,8 +60,7 @@ def value_and_grad(node, feed_dict, wrt=None):
     # use empy list if None
     wrt = wrt if wrt else []
 
-    input_nodes = [n for n in feed_dict]
-    nodes = topological_sort(input_nodes)
+    nodes = topological_sort(build_graph(feed_dict))
 
     # forward pass
     for n in nodes:
