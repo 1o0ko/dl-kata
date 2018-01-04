@@ -1,8 +1,8 @@
 '''
 Tests the node implementations
 '''
-import numpy as np
 import unittest
+import numpy as np
 
 from tinyflow.math import softmax
 from tinyflow.core import value_and_grad
@@ -12,7 +12,7 @@ from tinyflow.ops import (
     Mul,
     Linear,
     Sigmoid,
-    CrossEntropyWithSoftmax,
+    CrossEntropyWithLogits,
     MockGrad
 )
 
@@ -85,7 +85,7 @@ class OpsTest(unittest.TestCase):
     def test_cross_enrtopy_with_softmax(self):
         x_in, y_in = Input(), Input()
 
-        f = CrossEntropyWithSoftmax(x_in, y_in)
+        f = CrossEntropyWithLogits(x_in, y_in)
 
         # values to feed input nodes
         x = np.array([[0.5, 1., 1.5]])

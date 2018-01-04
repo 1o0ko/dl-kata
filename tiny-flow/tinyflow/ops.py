@@ -189,7 +189,7 @@ class Relu(Node):
             self.gradients[x] += grad_cost * (self.value > 0)
 
 
-class CrossEntropyWithSoftmax(Node):
+class CrossEntropyWithLogits(Node):
     '''
     Implements categorical cross-entropy loss with softmax
     '''
