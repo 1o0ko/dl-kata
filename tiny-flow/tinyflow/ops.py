@@ -3,6 +3,8 @@ Brain-dead simple version of tensorflow-like DL framework based on graphs
 '''
 import numpy as np
 
+from .math import softmax, sigmoid
+
 
 class Node(object):
     ''' Specifies the API contract '''
@@ -153,8 +155,7 @@ class Sigmoid(Node):
         Node.__init__(self, [x])
 
     def forward(self, kvargs):
-        x = self.inbound_nodes[0].value
-        self.value = 1./(1.+np.exp(-x))
+        self.value = sigmoid(self.inbound_nodes[0].value)
 
     def backward(self, kvargs):
         self.gradients = {
@@ -186,3 +187,32 @@ class Relu(Node):
             grad_cost = n.gradients[self]
             x = self.inbound_nodes[0]
             self.gradients[x] += grad_cost * (self.value > 0)
+
+
+class CrossEntropyWithSoftmax(Node):
+    '''
+    Implements categorical cross-entropy loss with softmax
+    '''
+    def __init__(self, x, y):
+        Node.__init__(self, [x, y])
+
+    def forward(self, kvargs):
+        x, y = [node.value for node in self.inbound_nodes]
+        probs = softmax(x)
+        self.cache = {'y_hat': probs}
+        self.value = np.average(-np.log(probs[:, y]))
+
+    def backward(self, kvargs):
+        # last node
+        assert not self.outbound_nodes
+
+        self.gradients = {
+            n: np.zeros_like(n.value) for n in self.inbound_nodes
+        }
+
+        # get values from cache
+        x, y = [node for node in self.inbound_nodes]
+        y_hat = self.cache['y_hat']
+        y_one_hot = np.eye(y_hat.shape[1])[y.value]
+
+        self.gradients[x] = y_hat - y_one_hot

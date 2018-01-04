@@ -4,6 +4,7 @@ Tests the node implementations
 import numpy as np
 import unittest
 
+from tinyflow.math import softmax
 from tinyflow.core import value_and_grad
 from tinyflow.ops import (
     Input,
@@ -11,6 +12,7 @@ from tinyflow.ops import (
     Mul,
     Linear,
     Sigmoid,
+    CrossEntropyWithSoftmax,
     MockGrad
 )
 
@@ -79,6 +81,34 @@ class OpsTest(unittest.TestCase):
 
         self.assertTrue(np.allclose(
             grads, np.array([0., 0.125, 0.]), atol=1.e-4))
+
+    def test_cross_enrtopy_with_softmax(self):
+        x_in, y_in = Input(), Input()
+
+        f = CrossEntropyWithSoftmax(x_in, y_in)
+
+        # values to feed input nodes
+        x = np.array([[0.5, 1., 1.5]])
+
+        # in this example we have a choice 3 classes (x has 3 columns)
+        # so our label can one of 0,1,2. It's 1 in this case.
+        y = np.array([[1]])
+
+        feed_dict = {x_in: x, y_in: y}
+        loss, grads = value_and_grad(f, feed_dict, wrt=[x_in])
+
+        # print(loss, grads)
+        # Look at the expected value of softmax(x) and the expected value of the gradient with
+        # respect to x
+        self.assertTrue(np.allclose(
+           softmax(x), [[0.1863, 0.3072,  0.5064]], atol=1.e-4))
+
+        self.assertTrue(np.allclose(
+            loss, 1.1802, atol=1.e-4))
+
+        self.assertTrue(np.allclose(
+            grads, np.array([[0.1863, -0.6928,  0.5064]]), atol=1.e-4))
+
 
 if __name__ == '__main__':
     unittest.main()
