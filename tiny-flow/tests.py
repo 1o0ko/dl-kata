@@ -109,6 +109,6 @@ class OpsTest(unittest.TestCase):
         self.assertTrue(np.allclose(
             grads, np.array([[0.1863, -0.6928,  0.5064]]), atol=1.e-4))
 
-
+        # TODO: add test case with several rows
 if __name__ == '__main__':
     unittest.main()
