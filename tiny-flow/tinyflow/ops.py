@@ -8,6 +8,7 @@ from .math import softmax, sigmoid
 
 class Node(object):
     ''' Specifies the API contract '''
+
     def __init__(self, inbound_nodes):
         self.inbound_nodes = inbound_nodes
         self.outbound_nodes = []
@@ -51,6 +52,7 @@ class Node(object):
 
 class MockGrad(Node):
     ''' Used in tests '''
+
     def __init__(self, x):
         Node.__init__(self, [x])
 
@@ -64,6 +66,7 @@ class MockGrad(Node):
 
 class Input(Node):
     ''' Implements inputing values to the graph `'''
+
     def __init__(self):
         Node.__init__(self, [])
 
@@ -83,6 +86,7 @@ class Input(Node):
 
 class Add(Node):
     ''' Implements binary addition: x + y '''
+
     def __init__(self, x, y):
         Node.__init__(self, [x, y])
 
@@ -103,6 +107,7 @@ class Add(Node):
 
 class Mul(Node):
     ''' Implements binary multiplication: x * y '''
+
     def __init__(self, x, y):
         Node.__init__(self, [x, y])
 
@@ -122,6 +127,7 @@ class Mul(Node):
 
 class Linear(Node):
     ''' Implements Linear layer: X*W + b '''
+
     def __init__(self, x_in, w_in, b_in):
         Node.__init__(self, [x_in, w_in, b_in])
 
@@ -151,6 +157,7 @@ class Sigmoid(Node):
     '''
     Implements sigmoid activation function
     '''
+
     def __init__(self, x):
         Node.__init__(self, [x])
 
@@ -164,13 +171,14 @@ class Sigmoid(Node):
         for n in self.outbound_nodes:
             grad_cost = n.gradients[self]
             x = self.inbound_nodes[0]
-            self.gradients[x] += grad_cost*self.value*(1-self.value)
+            self.gradients[x] += grad_cost * self.value * (1 - self.value)
 
 
 class Relu(Node):
     '''
     Implements ReLu activation function
     '''
+
     def __init__(self, x):
         Node.__init__(self, [x])
 
@@ -193,6 +201,7 @@ class CrossEntropyWithLogits(Node):
     '''
     Implements categorical cross-entropy loss with softmax
     '''
+
     def __init__(self, x, y):
         Node.__init__(self, [x, y])
 
