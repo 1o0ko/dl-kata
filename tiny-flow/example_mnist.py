@@ -6,7 +6,7 @@ import mnist
 import numpy as np
 
 from tinyflow.data import chainable
-
+from tinyflow.ops import Input, Linear, Sigmoid, CrossEntropyWithLogits
 
 @chainable
 def normalize(X):
@@ -30,6 +30,38 @@ def one_hot(X, n=None):
 
     return one_hot_encoding
 
+
+def get_weights(n_in, n_out):
+    '''
+    Initializes weights
+
+    TODO: Add smarter intialization
+    '''
+    W = np.random.randn(n_in, n_out)
+    b = np.random.randn(n_out)
+
+    return W, b
+
+
+def get_model():
+    '''
+    Builds the graph
+    '''
+    X, y = Input(name='X'), Input(name='y')
+
+    W1, b1 = Input(name='W1'), Input(name='b1')
+    W2, b2 = Input(name='W2'), Input(name='b2')
+    W3, b3 = Input(name='W3'), Input(name='b3')
+
+    l1 = Linear(X, W1, b1, name='l1')
+    s1 = Sigmoid(l1, name='s1')
+    l2 = Linear(s1, W2, b2, name='l2')
+    s2 = Sigmoid(l2, name='s2')
+    l3 = Linear(s2, W3, b3, name='l3')
+
+    cost = CrossEntropyWithLogits(y, l3, name='loss')
+
+    return cost
 
 def main():
     # create pipeline

@@ -9,7 +9,7 @@ from .math import softmax, sigmoid
 class Node(object):
     ''' Specifies the API contract '''
 
-    def __init__(self, inbound_nodes):
+    def __init__(self, inbound_nodes, name):
         self.inbound_nodes = inbound_nodes
         self.outbound_nodes = []
 
@@ -53,8 +53,8 @@ class Node(object):
 class MockGrad(Node):
     ''' Used in tests '''
 
-    def __init__(self, x):
-        Node.__init__(self, [x])
+    def __init__(self, x, name='MockGrad'):
+        Node.__init__(self, [x], name)
 
     def forward(self, kvargs):
         self.value = self.inbound_nodes[0].value
@@ -67,8 +67,8 @@ class MockGrad(Node):
 class Input(Node):
     ''' Implements inputing values to the graph `'''
 
-    def __init__(self):
-        Node.__init__(self, [])
+    def __init__(self, name='InputNode'):
+        Node.__init__(self, [], name)
 
     # NOTE: Input node is the only node where the value is
     # passed as an argument to forward()
@@ -87,8 +87,8 @@ class Input(Node):
 class Add(Node):
     ''' Implements binary addition: x + y '''
 
-    def __init__(self, x, y):
-        Node.__init__(self, [x, y])
+    def __init__(self, x, y, name='AddNode'):
+        Node.__init__(self, [x, y], name)
 
     def forward(self, kvargs):
         x, y = [node.value for node in self.inbound_nodes]
@@ -108,8 +108,8 @@ class Add(Node):
 class Mul(Node):
     ''' Implements binary multiplication: x * y '''
 
-    def __init__(self, x, y):
-        Node.__init__(self, [x, y])
+    def __init__(self, x, y, name='Mul'):
+        Node.__init__(self, [x, y], name)
 
     def forward(self, kvargs):
         x, y = [node.value for node in self.inbound_nodes]
@@ -128,8 +128,8 @@ class Mul(Node):
 class Linear(Node):
     ''' Implements Linear layer: X*W + b '''
 
-    def __init__(self, x_in, w_in, b_in):
-        Node.__init__(self, [x_in, w_in, b_in])
+    def __init__(self, x_in, w_in, b_in, name):
+        Node.__init__(self, [x_in, w_in, b_in], name)
 
     def forward(self, kvargs):
         X, W, b = [node.value for node in self.inbound_nodes]
@@ -158,8 +158,8 @@ class Sigmoid(Node):
     Implements sigmoid activation function
     '''
 
-    def __init__(self, x):
-        Node.__init__(self, [x])
+    def __init__(self, x, name='Sigmoid'):
+        Node.__init__(self, [x], name)
 
     def forward(self, kvargs):
         self.value = sigmoid(self.inbound_nodes[0].value)
@@ -179,8 +179,8 @@ class Relu(Node):
     Implements ReLu activation function
     '''
 
-    def __init__(self, x):
-        Node.__init__(self, [x])
+    def __init__(self, x, name='Relu'):
+        Node.__init__(self, [x], name=name)
 
     def forward(self, kvargs):
         x = self.inbound_nodes[0].value
@@ -202,8 +202,8 @@ class CrossEntropyWithLogits(Node):
     Implements categorical cross-entropy loss with softmax
     '''
 
-    def __init__(self, x, y):
-        Node.__init__(self, [x, y])
+    def __init__(self, x, y, name='CE with logits and softmax'):
+        Node.__init__(self, [x, y], name)
 
     def forward(self, kvargs):
         x, y = [node.value for node in self.inbound_nodes]
