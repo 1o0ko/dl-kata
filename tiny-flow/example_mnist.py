@@ -20,7 +20,7 @@ def flatten(X):
     assert len(X.shape) == 3
     n, h, w = X.shape
 
-    return X.reshape(n, h*w)
+    return X.reshape(n, h * w)
 
 
 def main():

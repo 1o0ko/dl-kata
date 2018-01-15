@@ -58,9 +58,9 @@ class OpsTest(unittest.TestCase):
         # print(loss, grads)
         self.assertTrue(np.allclose(loss, np.array([[-9., 4.], [-9., 4.]])))
         self.assertTrue(np.allclose(
-            grads[0], np.array([[-4.,  -4.], [-6.,  -6.]])))
+            grads[0], np.array([[-4., -4.], [-6., -6.]])))
         self.assertTrue(np.allclose(
-            grads[1], np.array([[-4.,  -6.], [-8., -12.]])))
+            grads[1], np.array([[-4., -6.], [-8., -12.]])))
         self.assertTrue(np.allclose(
             grads[2], np.array([[4., 6.]])))
 
@@ -101,13 +101,13 @@ class OpsTest(unittest.TestCase):
         # Look at the expected value of softmax(x) and the expected value of the gradient with
         # respect to x
         self.assertTrue(np.allclose(
-           softmax(x), [[0.1863, 0.3072,  0.5064]], atol=1.e-4))
+            softmax(x), [[0.1863, 0.3072, 0.5064]], atol=1.e-4))
 
         self.assertTrue(np.allclose(
             loss, 1.1802, atol=1.e-4))
 
         self.assertTrue(np.allclose(
-            grads, np.array([[0.1863, -0.6928,  0.5064]]), atol=1.e-4))
+            grads, np.array([[0.1863, -0.6928, 0.5064]]), atol=1.e-4))
 
         # TODO: add test case with several rows
 
